@@ -77,7 +77,7 @@ spec:
             readOnly: true
           #logs
           - name: pointerdir
-            mountPath: /opt/datadog-agent/run
+            mountPath: /var/datadog-agent/run
           #custom log paths
           - name: flasklogs
             mountPath: /var/log
@@ -103,7 +103,7 @@ spec:
             path: /etc/passwd
           name: passwd
         - hostPath:
-            path: /opt/datadog-agent/run
+            path: /var/datadog-agent/run
           name: pointerdir 
         #logs
         - hostPath:
