@@ -1,54 +1,39 @@
 
 # Intro
 
-This Workshop assumes [minikube](https://github.com/kubernetes/minikube/blob/v0.28.2/README.md) is installed (along with kubectl + kubernetes) and has only been tested in a Mac environment.
+This Workshop assumes you have access to an existing Kubernetes Cluster, but will quickly demo pathing using [Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/) using their web console
 
 In addition, you will need a Datadog Account and have access to an API key -- Start a Free Trial [Here](https://www.datadoghq.com/lpg6/)!
 
-This repo showcases a minikube-based path to deploying a simple flask app container that returns some sample text contained in a separate postgres container. 
+This repo showcases a Kubernetes-based path to deploying a simple flask app container service that returns some sample text contained in a separate postgres container. 
 
 The goal of this repo is to demonstrate the steps involved in installing a [Datadog](datadoghq.com/) agent to demonstrate the product's [Infrastructure Monitoring](https://www.datadoghq.com/server-monitoring/), [Application Performance Monitoring](https://www.datadoghq.com/blog/announcing-apm/), [Live Process/Container Monitoring](https://www.datadoghq.com/blog/live-process-monitoring/), and [Log Monitoring Capabilities](https://www.datadoghq.com/blog/announcing-logs/) in a Kubernetes x Docker based environment.
 
-This repo makes no accommodations for proxy scenarios and does not fullyaccommodate situations where machines are unable to pull from the internet to download packages
+This repo makes no accommodations for proxy scenarios and does not fully accommodate situations where machines are unable to pull from the internet to download packages
 
 # Steps to Success
 
 The gist of the setup portion is:
-1. Spin up Minikube Instance
-2. Load Dockerfiles into images
-3. Deploy!
+1. Spin up GKE Instance
+2. Deploy!
 
-## Set up 
-Start Minikube instance 
-```
-minikube start
-```
-In Mac's case, there may be a need to use localkube as a bootstrapper
+## Set up - Skippable if you already have a cluster 
+Start GKE instance via their [console](https://console.cloud.google.com/kubernetes/)
+To get started, you can simply use the Standard Cluster template with something like 3 nodes to get you in a good place to run this demo.
 
-```
-minikube start --bootstrapper=localkube
-```
+Find the Cluster instance in the page and click the Connect Button followed by the `Run in Cloud Shell` option to spin up a browser based shell to interface with the cluster.
 
-You will need to use minikube's docker engine by running:
-```
-eval $(minikube docker-env)
-```
+You will essentially SSH into a "gcloud" virtual machine terminal that is outside the scope of the cluster however Google preloads it with a command to scope the local kubectl interface to interact direct with the cluster.
 
-Store the API key in a kubernetes secret so its not directly in the deployment code
+Store the Datadog API key in a kubernetes secret so its not directly in the deployment code
 ```
-kubectl create secret generic datadog-api --from-literal=token=___INSERT_API_KEY_HERE
+kubectl create secret generic datadog-api --from-literal=token=___INSERT_API_KEY_HERE___
 ```
 The key is then referenced in the Daemon file [here](https://github.com/ziquanmiao/minikube_datadog/blob/8b48b62278dc52f4f8d2834bc6df3ae8f955acaf/agent_daemon.yaml#L28-L32)
 
-## build images
 
-Then, build the images based off the provided Dockerfiles
-```
-docker build -t sample_flask:007 ./flask_app/
-docker build -t sample_postgres:007 ./postgres/
-```
+## Deploy Things
 
-## deploy things
 
 Deploy the postgres container
 ```
@@ -60,8 +45,6 @@ Also create a configMap for the logs product
 ```
 kubectl create -f app_deployment.yaml
 ```
-
-
 
 Deploy the Datadog agent container
 
@@ -88,10 +71,8 @@ The Flask App offers 3 endpoints that returns some text `FLASK_SERVICE_IP:5000/`
 
 Run ```kubectl get services``` to find the [FLASK_SERVICE_IP](https://cl.ly/a344b20d5481) address of the flask application service
 
-You can then access the endpoints within the minikube vm:
-```
-minikube ssh
-```
+## Cluster Accessible via Internet
+If you used the default GKE template or know the cluster is accessible via the internet, you can use the IP found in the `EXTERNAL-IP` column as FLASK_SERVICE_IP
 
 then hit one of the following:
 ```
@@ -100,6 +81,19 @@ curl FLASK_SERVICE_IP:5000/query
 curl FLASK_SERVICE_IP:5000/bad
 ```
 to see the Flask application at work
+
+## Cluster Not Accessible Via Internet
+otherwise you can reference the `CLUSTER-IP` option as FLASK_SERVICE_IP
+
+You must SSH into one of the nodes in the cluster and then you can run one of the following:
+```
+curl FLASK_SERVICE_IP:5000/
+curl FLASK_SERVICE_IP:5000/query
+curl FLASK_SERVICE_IP:5000/bad
+```
+to see the Flask application at work
+
+In Google, you can simply do this by accessing their [Compute Nodes Console Page](https://console.cloud.google.com/compute/) and click the SSH button
 
 # Some points of interest
 
