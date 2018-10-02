@@ -1,0 +1,114 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: datadog-agent
+spec:
+  template:
+    metadata:
+      labels:
+        app: datadog-agent
+      name: datadog-agent
+    spec:
+      containers:
+      - image: datadog/agent:6.4.1
+        imagePullPolicy: Always
+        name: datadog-agent
+        ports:
+          - containerPort: 8125
+            hostPort: 8125
+            name: dogstatsdport
+            protocol: UDP
+          - containerPort: 8126
+            hostPort: 8126
+            name: traceport
+            protocol: TCP
+        env:
+          - name: DD_APM_ENABLED
+            value: "true"
+          - name: DD_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: datadog-api
+                key: token
+          - name: KUBERNETES
+            value: "yes"
+          - name: DD_COLLECT_KUBERNETES_EVENTS
+            value: "true"
+          - name: DD_KUBERNETES_KUBELET_HOST
+            valueFrom:
+              fieldRef:
+                fieldPath: status.hostIP
+          - name: DD_PROCESS_AGENT_ENABLED
+            value: "true"
+          - name: DD_LEADER_ELECTION
+            value: "true"
+          - name: DD_TAGS
+            value: "owner:ziquan"
+          - name: DD_LOGS_ENABLED
+            value: "true"
+          - name: DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL
+            value: "true"
+          - name: DD_DOGSTATSD_NON_LOCAL_TRAFFIC
+            value: "true"
+          # - name: DD_PROXY_HOST
+          #   value: 1.2.34
+          # - name: DD_PROXY_PORT
+          #   value: 8080
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        volumeMounts:
+          #docker
+          - name: dockersocket
+            mountPath: /var/run/docker.sock
+          - name: procdir
+            mountPath: /host/proc
+            readOnly: true
+          - name: cgroups
+            mountPath: /host/sys/fs/cgroup
+            readOnly: true
+          #live process monitoring
+          - name: passwd
+            mountPath: /etc/passwd
+            readOnly: true
+          #logs
+          - name: pointerdir
+            mountPath: /opt/datadog-agent/run
+          #custom log paths
+          - name: flasklogs
+            mountPath: /var/log
+          - name: vol-datadog-confd
+            mountPath: /conf.d
+        livenessProbe:
+          exec:
+            command:
+            - ./probe.sh
+          initialDelaySeconds: 15
+          periodSeconds: 5
+      volumes:
+        - hostPath:
+            path: /var/run/docker.sock
+          name: dockersocket
+        - hostPath:
+            path: /proc
+          name: procdir
+        - hostPath:
+            path: /sys/fs/cgroup
+          name: cgroups
+        - hostPath:
+            path: /etc/passwd
+          name: passwd
+        - hostPath:
+            path: /opt/datadog-agent/run
+          name: pointerdir 
+        #logs
+        - hostPath:
+            path: /var/log/
+          name: flasklogs
+        - name: vol-datadog-confd
+          configMap:
+            name: cm-datadog-confd

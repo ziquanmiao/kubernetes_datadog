@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: datadog-pause-monitoring
+  labels:
+    name: datadog-pause-monitoring
+spec:
+  selector:
+    matchLabels:
+      name: datadog-pause-monitoring
+  template:
+    metadata:
+      labels:
+        name: datadog-pause-monitoring
+      annotations:
+        ad.datadoghq.com/apiserver-monitoring-pause.check_names: '["prometheus","http_check"]'
+        ad.datadoghq.com/apiserver-monitoring-pause.init_configs: '[{},{}]'
+        ad.datadoghq.com/apiserver-monitoring-pause.instances: '[{"prometheus_url": "http://%%host%%:10255/metrics ", "namespace":"kube-system","metrics": [{"processor": "cpu"},{"memory": "mem"}]},{"name": "google", "url": "http://www.google.com", "timeout": "1"}]'
+    spec:
+      containers:
+      - name: apiserver-monitoring-pause
+        image: gcr.io/google_containers/pause
