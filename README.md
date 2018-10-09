@@ -78,27 +78,26 @@ The Flask App offers 3 endpoints that returns some text `FLASK_SERVICE_IP:5000/`
 
 Run ```kubectl get services``` to find the [FLASK_SERVICE_IP](https://cl.ly/a344b20d5481) address of the flask application service
 
+# Use the Flask App
+
+The SpringBoot App offers 3 endpoints that returns some text `SpringBoot_SERVICE_IP:8080/`, `SpringBoot_SERVICE_IP:8080/query`
+
+Run ```kubectl get services``` to find the [SpringBoot_SERVICE_IP](https://cl.ly/a344b20d5481) address of the flask application service
+
 ## Cluster Accessible via Internet
-If you used the default GKE template or know the cluster is accessible via the internet, you can use the IP found in the `EXTERNAL-IP` column as FLASK_SERVICE_IP
+If you used the default GKE template or know the cluster is accessible via the internet, you can use the IP found in the `EXTERNAL-IP` column as SERVICE_IP
 
 then hit one of the following:
 ```
-curl FLASK_SERVICE_IP:5000/
-curl FLASK_SERVICE_IP:5000/query
-curl FLASK_SERVICE_IP:5000/bad
+curl SpringBoot_SERVICE_IP:5000/
+curl SpringBoot_SERVICE_IP:5000/query
 ```
 to see the Flask application at work
 
 ## Cluster Not Accessible Via Internet
-otherwise you can reference the `CLUSTER-IP` option as FLASK_SERVICE_IP
+otherwise you can reference the `CLUSTER-IP` option as SERVICE_IP
 
 You must SSH into one of the nodes in the cluster and then you can run one of the following:
-```
-curl FLASK_SERVICE_IP:5000/
-curl FLASK_SERVICE_IP:5000/query
-curl FLASK_SERVICE_IP:5000/bad
-```
-to see the Flask application at work
 
 In Google, you can simply do this by accessing their [Compute Nodes Console Page](https://console.cloud.google.com/compute/) and click the SSH button
 
@@ -145,8 +144,7 @@ Many services (like kubernetes itself) utilizes Prometheus as an enhancement to 
 You can see what the structure of the prometheus metrics look like by running:
 
 ```
-minikube ssh
-curl localhost:10255/metrics
+curl SpringBoot_SERVICE_IP:8080/actuator/prometheus
 ```
 
 Datadog has the innate capability to read the log structure of prometheus produced metrics and turn it into custom metrics.
