@@ -5,7 +5,7 @@ This Workshop assumes you have access to an existing Kubernetes Cluster, but wil
 
 In addition, you will need a Datadog Account and have access to an API key -- Start a Free Trial [Here](https://www.datadoghq.com/lpg6/)!
 
-This repo showcases a Kubernetes-based path to deploying a simple flask app container service that returns some sample text contained in a separate postgres container. 
+This repo showcases a Kubernetes-based path to deploying a simple Python Flask Application Service and a simple Java SpringBoot Application Service that all return some sample text contained in a separate postgres container. 
 
 The goal of this repo is to demonstrate the steps involved in installing a [Datadog](datadoghq.com/) agent to demonstrate the product's [Infrastructure Monitoring](https://www.datadoghq.com/server-monitoring/), [Application Performance Monitoring](https://www.datadoghq.com/blog/announcing-apm/), [Live Process/Container Monitoring](https://www.datadoghq.com/blog/live-process-monitoring/), and [Log Monitoring Capabilities](https://www.datadoghq.com/blog/announcing-logs/) in a Kubernetes x Docker based environment.
 
@@ -40,10 +40,17 @@ Deploy the postgres container
 kubectl create -f postgres_deployment.yaml
 ```
 
-Deploy the application container and turn it into a service
+Deploy the Flask application container and turn it into a service
 Also create a configMap for the logs product
 ```
-kubectl create -f app_deployment.yaml
+kubectl create -f flask_deployment.yaml
+```
+
+
+Deploy the SpringBoot application container and turn it into a service
+Also create a configMap for the logs product
+```
+kubectl create -f springboot_deployment.yaml
 ```
 
 Deploy the Datadog agent container
