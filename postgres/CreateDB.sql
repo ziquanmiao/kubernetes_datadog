@@ -22,4 +22,6 @@ grant SELECT ON pg_stat_database to datadog;
 
 create user flask with password 'flask';
 GRANT ALL PRIVILEGES ON TABLE web_origins TO flask;
-GRANT ALL PRIVILEGES ON TABLE customer TO flask;
+
+create user springboot with password 'springboot';
+GRANT ALL PRIVILEGES ON TABLE customer TO springboot;
