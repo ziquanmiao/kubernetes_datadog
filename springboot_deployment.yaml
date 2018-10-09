@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: springbootapp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: springbootapp
+  template:
+    metadata:
+      labels:
+        app: springbootapp
+      annotations:
+        ad.datadoghq.com/springbootapp.check_names: '["prometheus"]'
+        ad.datadoghq.com/springbootapp.init_configs: '[{}]'
+        ad.datadoghq.com/springbootapp.instances: '[{"prometheus_url":"http://%%host%%:%%port%%/actuator/prometheus","metrics":["*"],"namespace":"springboot"}]'
+        # 6.5 ad.datadoghq.com/flaskapp.logs: '[{"type":"file","path":"/var/log/mylog.json","service":"flask","source":"python","sourcecategory":"sourcecode"}]'
+    spec:
+      containers:
+      - name: springbootapp
+        image: zmiao1/sample_springboot:008
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DD_AGENT_SERVICE_HOST
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: DD_AGENT_SERVICE_PORT
+          value: '8126'
+        - name: DD_AGENT_STATSD_PORT
+          value: '8125'
+        - name: DD_SERVICE_NAME
+          value: 'SpringBoot_Service'
+      #   volumeMounts:
+      #     - name: SpringBootLogs
+      #       mountPath: /var/log
+      # volumes:
+      #   - hostPath:
+      #       path: /var/log
+      #     name: SpringBootLogs
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: springbootapp
+spec:
+  selector:
+    app: springbootapp
+  ports:
+  - name: http
+    protocol: TCP
+    port: 8080
+  type: LoadBalancer
