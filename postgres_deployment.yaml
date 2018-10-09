@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: postgres
-        image: zmiao1/sample_postgres:007
+        image: sample_postgres:007
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5432

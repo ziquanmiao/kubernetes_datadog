@@ -10,7 +10,7 @@ spec:
       name: datadog-agent
     spec:
       containers:
-      - image: datadog/agent:6.4.1
+      - image: datadog/agent:6.5.2
         imagePullPolicy: Always
         name: datadog-agent
         ports:
