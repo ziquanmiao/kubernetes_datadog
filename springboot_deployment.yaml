@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: springbootapp
-        image: sample_springboot:007
+        image: zmiao1/sample_springboot:008
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
