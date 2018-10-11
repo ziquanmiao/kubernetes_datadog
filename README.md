@@ -7,9 +7,9 @@ In addition, you will need a Datadog Account and have access to an API key -- St
 
 This repo showcases a Kubernetes-based path to deploying a simple Python Flask Application Service and a simple Java SpringBoot Application Service that all return some sample text contained in a separate postgres container. 
 
-The goal of this repo is to demonstrate the steps involved in installing a [Datadog](datadoghq.com/) agent to demonstrate the product's [Infrastructure Monitoring](https://www.datadoghq.com/server-monitoring/), [Application Performance Monitoring](https://www.datadoghq.com/blog/announcing-apm/), [Live Process/Container Monitoring](https://www.datadoghq.com/blog/live-process-monitoring/), and [Log Monitoring Capabilities](https://www.datadoghq.com/blog/announcing-logs/) in a Kubernetes x Docker based environment.
+The goal of this repo is to demonstrate the steps involved in installing a [Datadog](datadoghq.com/) agent and showcase the product's [Infrastructure Monitoring](https://www.datadoghq.com/server-monitoring/), [Application Performance Monitoring](https://www.datadoghq.com/blog/announcing-apm/), [Live Process/Container Monitoring](https://www.datadoghq.com/blog/live-process-monitoring/), and [Log Monitoring Capabilities](https://www.datadoghq.com/blog/announcing-logs/) in a Kubernetes x Docker based environment.
 
-This repo makes no accommodations for proxy scenarios and does not fully accommodate situations where machines are unable to pull from the internet to download packages
+This repo makes no accommodations for proxy scenarios and does not fully accommodate situations where machines are unable to pull from the internet to download packages.
 
 # Steps to Success
 
@@ -31,11 +31,22 @@ kubectl create secret generic datadog-api --from-literal=token=___INSERT_API_KEY
 ```
 The key is then referenced in the Daemon file [here](https://github.com/ziquanmiao/minikube_datadog/blob/8b48b62278dc52f4f8d2834bc6df3ae8f955acaf/agent_daemon.yaml#L28-L32)
 
+## Optional -- Build Things
+Should the cluster be unable to head over to Docker Hub and access the public files, its probably best to build the images locally
+
+```
+docker build -t sample_flask:007 ./flask_app/
+docker build -t sample_postgres:007 ./postgres/
+docker build -t sample_springboot:007 ./SpringBoot_app/
+```
+
+Be aware you need to change the yaml files so the referenced images becomes the above images you build
+
+For example, change the referenced image in [springboot](https://github.com/ziquanmiao/kubernetes_datadog/blob/ae01d76b35906763ef980020ab07c7a03b09e963/springboot_deployment.yaml#L22) to sample_springboot:007
 
 ## Deploy Things
 
-
-Deploy the postgres container
+Deploy the postgres container (this needs to happen first so the service host/port envs properly load into subsequent containers)
 ```
 kubectl create -f postgres_deployment.yaml
 ```
@@ -45,7 +56,6 @@ Also create a configMap for the logs product
 ```
 kubectl create -f flask_deployment.yaml
 ```
-
 
 Deploy the SpringBoot application container and turn it into a service
 Also create a configMap for the logs product
@@ -78,7 +88,7 @@ The Flask App offers 3 endpoints that returns some text `FLASK_SERVICE_IP:5000/`
 
 Run ```kubectl get services``` to find the [FLASK_SERVICE_IP](https://cl.ly/a344b20d5481) address of the flask application service
 
-# Use the Flask App
+# Use the SpringBoot App
 
 The SpringBoot App offers 3 endpoints that returns some text `SpringBoot_SERVICE_IP:8080/`, `SpringBoot_SERVICE_IP:8080/query`
 
@@ -195,6 +205,21 @@ In the app.py code, [import ddtrace module](https://github.com/ziquanmiao/miniku
 
 **Note**: the trace module is an implementation as all modules are. If certain spans are not being captured, you can always [hardcode](https://github.com/ziquanmiao/minikube_datadog/blob/ba94f6072fbfccbaaf8595020690df9b2f6ebdfb/flask_app/app.py#L102) them in.
 
+##### SpringBoot specific
+
+In the Dockerfile setting up SpringBoot, make sure you initiate the runtime commands to mount dd-java-agent.jar as a javaagent as seen [here](https://github.com/ziquanmiao/kubernetes_datadog/blob/ae01d76b35906763ef980020ab07c7a03b09e963/SpringBoot_app/Dockerfile#L6-L9)
+
+Networking must also be possible so SpringBoot can fire to Agent pod's 8126 port
+so that means
+in springboot_deployment you need this [piece](https://github.com/ziquanmiao/kubernetes_datadog/blob/ae01d76b35906763ef980020ab07c7a03b09e963/springboot_deployment.yaml#L27-L32)
+in agent_daemon you need this [piece](https://github.com/ziquanmiao/kubernetes_datadog/blob/ae01d76b35906763ef980020ab07c7a03b09e963/agent_daemon.yaml#L21-L24)
+
+**Note**: the trace module is an implementation as all modules are so you can read what technologies we are compatible with [here](https://docs.datadoghq.com/tracing/setup/java/#compatibility). 
+If certain clauses in your code are not being captured, you can always [hardcode](https://docs.datadoghq.com/tracing/advanced_usage/#manual-instrumentation) them in.
+
+### Trace Search
+Datadog also recently integrated their APM platform with the logs platform. You can totally think about APM traces as if they were logs. As of 10/11/18, you need to whitelist which APM services and endpoints you want collected via this [agent_daemon configuration setting](https://github.com/ziquanmiao/kubernetes_datadog/blob/ae01d76b35906763ef980020ab07c7a03b09e963/agent_daemon.yaml#L53-L54)
+
 ### Validation
 
 #### Agent Side
@@ -208,7 +233,7 @@ run ``` cat /var/log/datadog/trace-agent.log``` to see logs pertaining to the tr
 
 #### Datadog Side
 
-head over to [Trace Services Page](datadoghq.com/apm/services) and look for your service level metrics and traces!
+Head over to [Trace Services Page](datadoghq.com/apm/services) and look for your service level metrics and traces!
 
 ## Logs
 
