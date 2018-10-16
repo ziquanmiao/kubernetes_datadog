@@ -52,6 +52,8 @@ spec:
             value: "true"
           - name: DD_APM_ANALYZED_SPANS
             value: "my-flask-app|flask.request=1,postgres_service|servlet.request=1,springboot_service|servlet.request=1"
+          - name: DD_KUBERNETES_POD_LABELS_AS_TAGS
+            value: '{"owner":"owner","category":"category","app":"application"}'
           # - name: DD_PROXY_HOST
           #   value: 1.2.34
           # - name: DD_PROXY_PORT
