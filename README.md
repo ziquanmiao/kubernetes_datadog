@@ -29,6 +29,17 @@ Store the Datadog API key in a kubernetes secret so its not directly in the depl
 ```
 kubectl create secret generic datadog-api --from-literal=token=___INSERT_API_KEY_HERE___
 ```
+
+Do the same thing for APP key in a secret called datadog-app
+```
+kubectl create secret generic datadog-app --from-literal=token=___INSERT_APP_KEY_HERE___
+```
+
+Create a secret 32 character token for DCA
+```
+kubectl create secret generic datadog-auth-token --from-literal=token=12345678901234567890123456789012
+```
+
 The key is then referenced in the Daemon file [here](https://github.com/ziquanmiao/minikube_datadog/blob/8b48b62278dc52f4f8d2834bc6df3ae8f955acaf/agent_daemon.yaml#L28-L32)
 
 ## Optional -- Build Things
