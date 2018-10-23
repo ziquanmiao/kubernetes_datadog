@@ -33,7 +33,6 @@ spec:
             value: "true"
           - name: DD_EXTERNAL_METRICS_PROVIDER_ENABLED
             value: 'true'
-          If using a secret, you can alternatively use:
           - name: DD_CLUSTER_AGENT_AUTH_TOKEN
             valueFrom:
               secretKeyRef:
