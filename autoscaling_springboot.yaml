@@ -16,7 +16,7 @@ spec:
       metricSelector:
         matchLabels:
             service: springboot_service
-      targetAverageValue: 125
+      targetAverageValue: 15
 ---
 kind: Service
 apiVersion: v1
