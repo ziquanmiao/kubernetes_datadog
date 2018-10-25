@@ -28,6 +28,7 @@ spec:
               secretKeyRef:
                 name: datadog-api
                 key: token
+          # INFRA
           - name: KUBERNETES
             value: "yes"
           - name: DD_COLLECT_KUBERNETES_EVENTS
@@ -36,7 +37,6 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.hostIP
-          
           - name: DD_LEADER_ELECTION
             value: "true"
           - name: DD_TAGS
@@ -79,7 +79,7 @@ spec:
             memory: "256Mi"
             cpu: "200m"
           limits:
-            memory: "256Mi"
+            memory: "512Mi"
             cpu: "200m"
         volumeMounts:
           #docker

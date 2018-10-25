@@ -1,0 +1,19 @@
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: springbootxt
+spec:
+  minReplicas: 2
+  maxReplicas: 8
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: springbootapp
+  metrics:
+  - type: External
+    external:
+      metricName: trace.servlet.request.hits
+      metricSelector:
+        matchLabels:
+            service: springboot_service
+      targetAverageValue: 125
