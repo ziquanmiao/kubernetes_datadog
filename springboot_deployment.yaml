@@ -18,21 +18,26 @@ spec:
     spec:
       containers:
       - name: springbootapp
-        image: zmiao1/sample_springboot:013
+        image: zmiao1/sample_springboot:014
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
         env:
-        - name: DD_AGENT_SERVICE_HOST
+        - name: DD_AGENT_HOST
           valueFrom:
             fieldRef:
               fieldPath: status.hostIP
         - name: DD_AGENT_SERVICE_PORT
           value: '8126'
-        - name: DD_AGENT_STATSD_PORT
+        - name: DD_AGENT_PORT
           value: '8125'
         - name: DD_SERVICE_NAME
           value: 'SpringBoot_Service'
+        - name: DD_JMXFETCH_ENABLED
+          value: "yes"
+        - name: DD_JMXFETCH_STATSD_PORT
+          value: '8126'
+
       #   volumeMounts:
       #     - name: SpringBootLogs
       #       mountPath: /var/log
