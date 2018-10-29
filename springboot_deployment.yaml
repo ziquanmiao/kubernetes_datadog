@@ -12,13 +12,13 @@ spec:
       labels:
         app: springbootapp
       annotations:
-        ad.datadoghq.com/springbootapp.check_names: '["prometheus"]'
+        ad.datadoghq.com/springbootapp.check_names: '["openmetrics"]'
         ad.datadoghq.com/springbootapp.init_configs: '[{}]'
         ad.datadoghq.com/springbootapp.instances: '[{"prometheus_url":"http://%%host%%:%%port%%/actuator/prometheus","metrics":["*"],"namespace":"springboot"}]'
     spec:
       containers:
       - name: springbootapp
-        image: zmiao1/sample_springboot:011
+        image: zmiao1/sample_springboot:012
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
