@@ -3,7 +3,7 @@ kind: HorizontalPodAutoscaler
 metadata:
   name: springbootxt
 spec:
-  minReplicas: 2
+  minReplicas: 1
   maxReplicas: 8
   scaleTargetRef:
     apiVersion: apps/v1
@@ -16,7 +16,7 @@ spec:
       metricSelector:
         matchLabels:
             service: springboot_service
-      targetAverageValue: 15
+      targetAverageValue: 7
 ---
 kind: Service
 apiVersion: v1
