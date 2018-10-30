@@ -32,7 +32,7 @@ spec:
         - name: DD_SERVICE_NAME
           value: 'SpringBoot_Service'
         - name: DD_JMXFETCH_ENABLED
-          value: "yes"
+          value: "true"
         - name: DD_STATSD_PORT
           value: '8125'
         - name: DD_JMXFETCH_STATSD_PORT
