@@ -10,7 +10,7 @@ spec:
       name: datadog-agent
     spec:
       containers:
-      - image: datadog/agent:6.5.2
+      - image: datadog/agent:6.6.0
         imagePullPolicy: Always
         name: datadog-agent
         ports:
@@ -23,13 +23,12 @@ spec:
             name: traceport
             protocol: TCP
         env:
-          - name: DD_APM_ENABLED
-            value: "true"
           - name: DD_API_KEY
             valueFrom:
               secretKeyRef:
                 name: datadog-api
                 key: token
+          # INFRA
           - name: KUBERNETES
             value: "yes"
           - name: DD_COLLECT_KUBERNETES_EVENTS
@@ -38,32 +37,49 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.hostIP
-          - name: DD_PROCESS_AGENT_ENABLED
-            value: "true"
           - name: DD_LEADER_ELECTION
             value: "true"
           - name: DD_TAGS
             value: "owner:ziquan"
+          # Live Process Monitoring
+          - name: DD_PROCESS_AGENT_ENABLED
+            value: "true"
+          # Logs
           - name: DD_LOGS_ENABLED
             value: "true"
           - name: DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL
             value: "true"
+          # accepts statsd from external pods outside the agent one
           - name: DD_DOGSTATSD_NON_LOCAL_TRAFFIC
             value: "true"
+          # APM
+          - name: DD_APM_ENABLED
+            value: "true"
+          # For Trace Search
           - name: DD_APM_ANALYZED_SPANS
             value: "my-flask-app|flask.request=1,postgres_service|servlet.request=1,springboot_service|servlet.request=1"
+          # Tags trace data. Key = label reference name, Value = Key mapping in datadog
           - name: DD_KUBERNETES_POD_LABELS_AS_TAGS
             value: '{"owner":"owner","category":"category","app":"application"}'
           # - name: DD_PROXY_HOST
           #   value: 1.2.34
           # - name: DD_PROXY_PORT
           #   value: 8080
+
+          # For DCA Agent
+          - name: DD_CLUSTER_AGENT_ENABLED
+            value: "true"
+          - name: DD_CLUSTER_AGENT_AUTH_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: datadog-auth-token
+                key: token
         resources:
           requests:
             memory: "256Mi"
             cpu: "200m"
           limits:
-            memory: "256Mi"
+            memory: "512Mi"
             cpu: "200m"
         volumeMounts:
           #docker
@@ -116,3 +132,38 @@ spec:
         - name: vol-datadog-confd
           configMap:
             name: cm-datadog-confd
+
+#RBAC for Cluster Agent Below
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: datadog-agent
+rules:
+- apiGroups:  # This is required by the agent to query the Kubelet API.
+  - ""
+  resources:
+  - nodes/metrics
+  - nodes/spec
+  - nodes/proxy # Required to get /pods
+  verbs:
+  - get
+---
+kind: ServiceAccount
+apiVersion: v1
+metadata:
+  name: datadog-agent
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: datadog-agent
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: datadog-agent
+subjects:
+- kind: ServiceAccount
+  name: datadog-agent
+  namespace: default
