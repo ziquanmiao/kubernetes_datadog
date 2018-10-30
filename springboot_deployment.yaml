@@ -27,20 +27,18 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.hostIP
-        - name: DD_AGENT_SERVICE_PORT
-          value: '8126'
         - name: DD_AGENT_PORT
-          value: '8125'
+          value: '8126'
         - name: DD_SERVICE_NAME
           value: 'SpringBoot_Service'
         - name: DD_JMXFETCH_ENABLED
           value: "yes"
-        - name: DD_JMXFETCH_STATSD_PORT
-          value: '8126'
+        - name: DD_STATSD_PORT
+          value: '8125'
 
       #   volumeMounts:
       #     - name: SpringBootLogs
-      #       mountPath: /var/log
+      #       mountPath: /var/l`og
       # volumes:
       #   - hostPath:
       #       path: /var/log
