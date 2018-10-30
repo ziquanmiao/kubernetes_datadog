@@ -35,6 +35,8 @@ spec:
           value: "yes"
         - name: DD_STATSD_PORT
           value: '8125'
+        - name: DD_JMXFETCH_STATSD_PORT
+          value: '8125'
 
       #   volumeMounts:
       #     - name: SpringBootLogs
