@@ -122,6 +122,14 @@ You must SSH into one of the nodes in the cluster and then you can run one of th
 
 In Google, you can simply do this by accessing their [Compute Nodes Console Page](https://console.cloud.google.com/compute/) and click the SSH button
 
+
+## JMX Metrics
+
+### Native Datadog Agent Fetch
+
+Datadog's Java Agent Module after v0.17.0 can accommodate JMX metrics out of the box.
+Simply [turn on](https://github.com/ziquanmiao/kubernetes_datadog/blob/553aa1090df77749ecf415595fa982f6e1e7dad6/springboot_deployment.yaml#L34-L35) the feature and point the module to the relevant Datadog Agent [Statsd endpoint](https://github.com/ziquanmiao/kubernetes_datadog/blob/553aa1090df77749ecf415595fa982f6e1e7dad6/springboot_deployment.yaml#L38-L39) and you should see `jvm.*` metrics in your [metrics summary page](https://app.datadoghq.com/metric/summary?filter=jvm)
+
 # Some points of interest
 
 The Datadog agent container should now be deployed and is acting as a collector and middleman between the services and Datadog's backend. Through actions -- curling the endpoints -- and doing nothing, metrics will be generated and directed to the corresponding Datadog Account based off your supplied API key
