@@ -57,6 +57,13 @@ For example, change the referenced image in [springboot](https://github.com/ziqu
 
 ## Deploy Things
 
+*GKE* consideration
+If you are using GKE, you need to createa  clusterrolebinding because it is not set by default:
+```
+kubectl create clusterrolebinding cluster-admin-binding --clusterrole cluster-admin --user $(gcloud config get-value account)
+```
+
+
 Deploy the postgres container (this needs to happen first so the service host/port envs properly load into subsequent containers)
 ```
 kubectl create -f postgres_deployment.yaml
@@ -123,11 +130,11 @@ You must SSH into one of the nodes in the cluster and then you can run one of th
 In Google, you can simply do this by accessing their [Compute Nodes Console Page](https://console.cloud.google.com/compute/) and click the SSH button
 
 
-## JMX Metrics
+## JVM Metrics
 
 ### Native Datadog Agent Fetch
 
-Datadog's Java Agent Module after v0.17.0 can accommodate JMX metrics out of the box.
+Datadog's Java Agent Module after v0.17.0 can accommodate JVM metrics out of the box.
 Simply [turn on](https://github.com/ziquanmiao/kubernetes_datadog/blob/553aa1090df77749ecf415595fa982f6e1e7dad6/springboot_deployment.yaml#L34-L35) the feature and point the module to the relevant Datadog Agent [Statsd endpoint](https://github.com/ziquanmiao/kubernetes_datadog/blob/553aa1090df77749ecf415595fa982f6e1e7dad6/springboot_deployment.yaml#L38-L39) and you should see `jvm.*` metrics in your [metrics summary page](https://app.datadoghq.com/metric/summary?filter=jvm)
 
 # Some points of interest
@@ -180,6 +187,24 @@ Datadog has the innate capability to read the log structure of prometheus produc
 The scope of this repo doesn't really touch on it too much, but collecting prometheus metrics can simply be done via annotations done at the deployment level as seen [here](https://github.com/ziquanmiao/minikube_datadog/blob/67c0d53f3d9fa2c55dc47986c1ab82625445a70e/app_deployment.yaml#L15-L17) -- note this example fails on purpose so you can see what an error looks like in agent status
 
 Read more about it via our [documentation](https://docs.datadoghq.com/agent/prometheus/)
+
+### Datadog Cluster Agent (DCA)
+
+Agents deployed across the worker nodes in a cluster via the Daemonset will automatically ping the API server to access metadata (tags) about the corresponding pods. In clusters with high number of worker nodes, this can prove to be problematic as the apiserver is not really designed to accommodate a high number of requests from all the agents.
+
+To mitigate this, simply run a deployment via the below files for a [Datadog cluster agent](https://www.datadoghq.com/blog/datadog-cluster-agent/) which acts as the intermediary between the API server and the worker node agents.
+```
+kubectl create -f scaling_rbac.yaml 
+kubectl create -f cluster-agent.yaml 
+```
+
+which creates the necessary credentials, bindings and deploys a single cluster agent pod in one of the worker nodes.
+
+#### Horizontal Pod Autoscaling (HPA)
+In addition to acting as the intermediary for metadata, the cluster agent can also utilize the HPA concept from Kubernetes v1.10+ to anchor scaling of any pod in the cluster off any Datadog metric. Read about this [blog](https://www.datadoghq.com/blog/autoscale-kubernetes-datadog/) for more information.
+
+In this project example, the Java springboot service [scales](https://github.com/ziquanmiao/kubernetes_datadog/blob/8e94405475ae99dfcc5b521c63a3b59abbead54f/autoscaling_springboot.yaml#L15-L18) off a metric called `trace.servlet.request.hits` filtered on the tag `service:springboot_service`
+
 
 ## Live Processes/Containers
 [Live Process/Container Monitoring](https://www.datadoghq.com/blog/live-process-monitoring/) is the capability to get container and process level granularity for all monitored systems.
