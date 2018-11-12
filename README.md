@@ -17,7 +17,7 @@ The gist of the setup portion is:
 1. Spin up GKE Instance
 2. Deploy!
 
-## Set up - Skippable if you already have a cluster 
+## Set up
 Start GKE instance via their [console](https://console.cloud.google.com/kubernetes/)
 To get started, you can simply use the Standard Cluster template with something like 3 nodes to get you in a good place to run this demo.
 
