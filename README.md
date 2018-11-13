@@ -17,7 +17,9 @@ The gist of the setup portion is:
 1. Spin up GKE Instance
 2. Deploy!
 
-## Set up - Skippable if you already have a cluster 
+## Set up
+
+### GKE Start up
 Start GKE instance via their [console](https://console.cloud.google.com/kubernetes/)
 To get started, you can simply use the Standard Cluster template with something like 3 nodes to get you in a good place to run this demo.
 
@@ -25,6 +27,14 @@ Find the Cluster instance in the page and click the Connect Button followed by t
 
 You will essentially SSH into a "gcloud" virtual machine terminal that is outside the scope of the cluster however Google preloads it with a command to scope the local kubectl interface to interact direct with the cluster.
 
+You will also need to initiate with running
+
+```
+kubectl create clusterrolebinding cluster-admin-binding --clusterrole cluster-admin --user $(gcloud config get-value account)
+```
+This is important for the DCA and Kubernetes State metrics (explained later)
+
+### Cluster Exists already
 Store the Datadog API key in a kubernetes secret so its not directly in the deployment code
 ```
 kubectl create secret generic datadog-api --from-literal=token=___INSERT_API_KEY_HERE___
