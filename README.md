@@ -71,7 +71,7 @@ For example, change the referenced image in [springboot](https://github.com/ziqu
 
 ## Deploy Things
 
-Deploy the postgres container (this needs to happen first so the service host/port envs properly load into subsequent containers)
+Deploy the postgres container (this needs to happen first so the service host/port envs properly load into subsequent containers) (@z - on my GKE cluster, built from the standard template, I have to `cd kubernetes_datadog` before running - is that folder loaded automatically? Was this because I took your workshop before? I'm using a new cluster, so it's not clear to me how this gets folder loaded. Regardless, the following commands require the user be in the `kubernetes_datadog` folder)
 ```
 kubectl create -f postgres_deployment.yaml
 ```
@@ -113,16 +113,19 @@ The Flask App offers 3 endpoints that returns some text `FLASK_SERVICE_IP:5000/`
 
 Run ```kubectl get services``` to find the [FLASK_SERVICE_IP](https://cl.ly/a344b20d5481) address of the flask application service
 
+(v minor edit @z: could combine these two sections to just run the ```kubectl get services``` command once, and grab all the output, since it gives all IPs for this "Use the Flask App" and "Use the Springboot App")
+
 # Use the SpringBoot App
 
-The SpringBoot App offers 3 endpoints that returns some text `SpringBoot_SERVICE_IP:8080/`, `SpringBoot_SERVICE_IP:8080/query`
+The SpringBoot App offers 2 endpoints that returns some text `SpringBoot_SERVICE_IP:8080/`, `SpringBoot_SERVICE_IP:8080/query`
 
 Run ```kubectl get services``` to find the [SpringBoot_SERVICE_IP](https://cl.ly/a344b20d5481) address of the flask application service
 
 ## Cluster Accessible via Internet
 If you used the default GKE template or know the cluster is accessible via the internet, you can use the IP found in the `EXTERNAL-IP` column as SERVICE_IP
 
-then hit one of the following:
+then hit one of the following: (@z: this didn't work for me - however, curl `Flask_SERVICE_IP:5000/` and `Flask_SERVICE_IP:5000/query` yielded 'Flask has been kuberneted' and '(u'1', u'z@datadoghq.com')', respectively - what's the intended outcome here?)
+
 ```
 curl SpringBoot_SERVICE_IP:5000/
 curl SpringBoot_SERVICE_IP:5000/query
@@ -146,7 +149,9 @@ Simply [turn on](https://github.com/ziquanmiao/kubernetes_datadog/blob/553aa1090
 
 # Some points of interest
 
-The Datadog agent container should now be deployed and is acting as a collector and middleman between the services and Datadog's backend. Through actions -- curling the endpoints -- and doing nothing, metrics will be generated and directed to the corresponding Datadog Account based off your supplied API key
+The Datadog agent container should now be deployed and is acting as a collector and middleman between the services and Datadog's backend. Through actions -- curling the endpoints -- and doing nothing, metrics will be generated and directed to the corresponding Datadog Account based off your supplied API key.
+
+(@z: I did not see metrics - I did enable via the springboot_deployment.yaml (DD_JMXFETCH_ENABLED with value: "true", DD_JMXFETCH_STATSD_PORT with value "8125"), but no jvm.* metrics showed up in the DD UI Metrics Summary)
 
 Below is a quick discussion on some points of interest
 
