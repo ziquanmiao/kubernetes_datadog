@@ -1,7 +1,7 @@
 
 # Intro
 
-This Workshop assumes you have access to an existing Kubernetes Cluster, but will quickly demo pathing using [Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/) using their web console
+This Workshop assumes you have access to an existing Kubernetes Cluster, but will quickly demo pathing using [Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/) using their web console.
 
 In addition, you will need a Datadog Account and have access to an API key -- Start a Free Trial [Here](https://www.datadoghq.com/lpg6/)!
 
@@ -25,7 +25,11 @@ To get started, you can simply use the Standard Cluster template with something 
 
 Find the Cluster instance in the page and click the Connect Button followed by the `Run in Cloud Shell` option to spin up a browser based shell to interface with the cluster.
 
-You will essentially SSH into a "gcloud" virtual machine terminal that is outside the scope of the cluster however Google preloads it with a command to scope the local kubectl interface to interact direct with the cluster.
+You will essentially SSH into a "gcloud" virtual machine terminal that is outside the scope of the cluster however Google preloads it with a command to scope the local kubectl interface to interact direct with the cluster - be sure to then run the preloaded command, which looks similar to
+
+```
+gcloud container clusters get-credentials cluster_name --zone us-central1-a --project project_name
+```
 
 You will also need to initiate with running
 
@@ -34,8 +38,8 @@ kubectl create clusterrolebinding cluster-admin-binding --clusterrole cluster-ad
 ```
 This is important for the DCA and Kubernetes State metrics (explained later)
 
-### Cluster Exists already
-Store the Datadog API key in a kubernetes secret so its not directly in the deployment code
+### Cluster Exists already (@z: What does this title mean? It's not clear to me)
+Store the Datadog API key in a kubernetes secret so its not directly in the deployment code. You can find this in the Datadog UI interface, under the Intregrations tab > APIs.
 ```
 kubectl create secret generic datadog-api --from-literal=token=___INSERT_API_KEY_HERE___
 ```
@@ -50,7 +54,7 @@ Create a secret 32 character token for DCA
 kubectl create secret generic datadog-auth-token --from-literal=token=12345678901234567890123456789012
 ```
 
-The key is then referenced in the Daemon file [here](https://github.com/ziquanmiao/minikube_datadog/blob/8b48b62278dc52f4f8d2834bc6df3ae8f955acaf/agent_daemon.yaml#L28-L32)
+Secrets persist through shell sessions - new shell sessions have access to previously created secrets, in case you need to re-open the shell due to a dropped connection, etc. The key is then referenced in the Daemon file [here](https://github.com/ziquanmiao/minikube_datadog/blob/8b48b62278dc52f4f8d2834bc6df3ae8f955acaf/agent_daemon.yaml#L28-L32)
 
 ## Optional -- Build Things
 Should the cluster be unable to head over to Docker Hub and access the public files, its probably best to build the images locally
@@ -67,7 +71,7 @@ For example, change the referenced image in [springboot](https://github.com/ziqu
 
 ## Deploy Things
 
-Deploy the postgres container (this needs to happen first so the service host/port envs properly load into subsequent containers)
+Deploy the postgres container (this needs to happen first so the service host/port envs properly load into subsequent containers) (@z - on my GKE cluster, built from the standard template, I have to `cd kubernetes_datadog` before running - is that folder loaded automatically? Was this because I took your workshop before? I'm using a new cluster, so it's not clear to me how this gets folder loaded. Regardless, the following commands require the user be in the `kubernetes_datadog` folder)
 ```
 kubectl create -f postgres_deployment.yaml
 ```
@@ -109,16 +113,19 @@ The Flask App offers 3 endpoints that returns some text `FLASK_SERVICE_IP:5000/`
 
 Run ```kubectl get services``` to find the [FLASK_SERVICE_IP](https://cl.ly/a344b20d5481) address of the flask application service
 
+(v minor edit @z: could combine these two sections to just run the ```kubectl get services``` command once, and grab all the output, since it gives all IPs for this "Use the Flask App" and "Use the Springboot App")
+
 # Use the SpringBoot App
 
-The SpringBoot App offers 3 endpoints that returns some text `SpringBoot_SERVICE_IP:8080/`, `SpringBoot_SERVICE_IP:8080/query`
+The SpringBoot App offers 2 endpoints that returns some text `SpringBoot_SERVICE_IP:8080/`, `SpringBoot_SERVICE_IP:8080/query`
 
 Run ```kubectl get services``` to find the [SpringBoot_SERVICE_IP](https://cl.ly/a344b20d5481) address of the flask application service
 
 ## Cluster Accessible via Internet
 If you used the default GKE template or know the cluster is accessible via the internet, you can use the IP found in the `EXTERNAL-IP` column as SERVICE_IP
 
-then hit one of the following:
+then hit one of the following: (@z: this didn't work for me - however, curl `Flask_SERVICE_IP:5000/` and `Flask_SERVICE_IP:5000/query` yielded 'Flask has been kuberneted' and '(u'1', u'z@datadoghq.com')', respectively - what's the intended outcome here?)
+
 ```
 curl SpringBoot_SERVICE_IP:5000/
 curl SpringBoot_SERVICE_IP:5000/query
@@ -142,7 +149,9 @@ Simply [turn on](https://github.com/ziquanmiao/kubernetes_datadog/blob/553aa1090
 
 # Some points of interest
 
-The Datadog agent container should now be deployed and is acting as a collector and middleman between the services and Datadog's backend. Through actions -- curling the endpoints -- and doing nothing, metrics will be generated and directed to the corresponding Datadog Account based off your supplied API key
+The Datadog agent container should now be deployed and is acting as a collector and middleman between the services and Datadog's backend. Through actions -- curling the endpoints -- and doing nothing, metrics will be generated and directed to the corresponding Datadog Account based off your supplied API key.
+
+(@z: I did not see metrics - I did enable via the springboot_deployment.yaml (DD_JMXFETCH_ENABLED with value: "true", DD_JMXFETCH_STATSD_PORT with value "8125"), but no jvm.* metrics showed up in the DD UI Metrics Summary)
 
 Below is a quick discussion on some points of interest
 
