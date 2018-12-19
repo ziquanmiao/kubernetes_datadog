@@ -1,7 +1,7 @@
 
 # Intro
 
-This Workshop assumes you have access to an existing Kubernetes Cluster, but will quickly demo pathing using [Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/) using their web console
+This Workshop assumes you have access to an existing Kubernetes Cluster, but will quickly demo pathing using [Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/) using their web console.
 
 In addition, you will need a Datadog Account and have access to an API key -- Start a Free Trial [Here](https://www.datadoghq.com/lpg6/)!
 
@@ -25,7 +25,11 @@ To get started, you can simply use the Standard Cluster template with something 
 
 Find the Cluster instance in the page and click the Connect Button followed by the `Run in Cloud Shell` option to spin up a browser based shell to interface with the cluster.
 
-You will essentially SSH into a "gcloud" virtual machine terminal that is outside the scope of the cluster however Google preloads it with a command to scope the local kubectl interface to interact direct with the cluster.
+You will essentially SSH into a "gcloud" virtual machine terminal that is outside the scope of the cluster however Google preloads it with a command to scope the local kubectl interface to interact direct with the cluster - be sure to then run the preloaded command, which looks similar to
+
+```
+gcloud container clusters get-credentials cluster_name --zone us-central1-a --project project_name
+```
 
 You will also need to initiate with running
 
@@ -34,8 +38,8 @@ kubectl create clusterrolebinding cluster-admin-binding --clusterrole cluster-ad
 ```
 This is important for the DCA and Kubernetes State metrics (explained later)
 
-### Cluster Exists already
-Store the Datadog API key in a kubernetes secret so its not directly in the deployment code
+### Cluster Exists already (@z: What does this title mean? It's not clear to me)
+Store the Datadog API key in a kubernetes secret so its not directly in the deployment code. You can find this in the Datadog UI interface, under the Intregrations tab > APIs.
 ```
 kubectl create secret generic datadog-api --from-literal=token=___INSERT_API_KEY_HERE___
 ```
@@ -50,7 +54,7 @@ Create a secret 32 character token for DCA
 kubectl create secret generic datadog-auth-token --from-literal=token=12345678901234567890123456789012
 ```
 
-The key is then referenced in the Daemon file [here](https://github.com/ziquanmiao/minikube_datadog/blob/8b48b62278dc52f4f8d2834bc6df3ae8f955acaf/agent_daemon.yaml#L28-L32)
+Secrets persist through shell sessions - new shell sessions have access to previously created secrets, in case you need to re-open the shell due to a dropped connection, etc. The key is then referenced in the Daemon file [here](https://github.com/ziquanmiao/minikube_datadog/blob/8b48b62278dc52f4f8d2834bc6df3ae8f955acaf/agent_daemon.yaml#L28-L32)
 
 ## Optional -- Build Things
 Should the cluster be unable to head over to Docker Hub and access the public files, its probably best to build the images locally
